@@ -21,7 +21,6 @@ class ObjectCoroutine extends h2d.Object {
             return cr(dt);
         };
 
-        // Handle options
         for (option in this.options) {
             switch option {
                 case RetainOnStop: {
@@ -48,10 +47,10 @@ class ObjectCoroutine extends h2d.Object {
                 default:
             }
         }
-        StartCoroutine(internalCoroutine, [
-            OnStart(() -> {triggerEvent(OnCoroutineStart);}),
-            OnComplete(() -> {triggerEvent(OnCoroutineStopped);}),
-        ]);
+        co.push(OnStart(() -> {triggerEvent(OnCoroutineStart);}));
+        co.push(OnComplete(() -> {triggerEvent(OnCoroutineStopped);}));
+        
+        StartCoroutine(internalCoroutine, co);
     }
 
     override function onRemove() {
