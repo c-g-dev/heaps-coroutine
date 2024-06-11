@@ -1,0 +1,14 @@
+-cp src
+-cp res
+-cp test
+
+-lib ludi-commons
+-lib uuid
+-lib heaps
+-lib hlsdl
+
+-hl build.hl
+
+-D windowSize=900x700
+
+--main AllTests
