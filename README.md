@@ -3,7 +3,7 @@
 Portable coroutine system for Heaps. Autowires itself to the system loop, no configuration or boilerplate required.
 
 ```
-haxelib install heaps-simplegui
+haxelib install heaps-coroutine
 ```
 
 ## Usage
