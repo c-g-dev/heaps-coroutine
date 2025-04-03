@@ -1,0 +1,19 @@
+{
+    "name": "heaps-coroutine",
+    "url" : "https://github.com/cardgdev/heaps-coroutine",
+    "description": "Portable coroutine system for Heaps. Autowires itself to the system loop, no configuration or boilerplate required.",
+    "license": "MIT",
+    "tags": [
+      "heaps", "util", "coroutine"
+    ],
+    "classPath": "src",
+    "contributors": [
+      "cgdev"
+    ],
+    "releasenote": "Initial release",
+    "version": "0.0.1",
+    "dependencies": {
+		  "ludi-commons": "",
+      "heaps": ""
+	  }
+  }

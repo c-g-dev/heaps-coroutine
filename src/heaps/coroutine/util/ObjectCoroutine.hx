@@ -1,5 +1,6 @@
 package heaps.coroutine.util;
 
+import heaps.coroutine.CoroutineSystem.StopCoroutine;
 import heaps.coroutine.Coroutine.CoroutineOption;
 import heaps.coroutine.CoroutineSystem.StartCoroutine;
 
@@ -9,6 +10,7 @@ class ObjectCoroutine extends h2d.Object {
     var internalCoroutine: Coroutine;
     var options: Array<ObjectCoroutineOption>;
     var eventListeners: Array<ObjectCoroutineEvent -> Void> = [];
+    var coroutineTag: String;
     
     public function new(cr: Coroutine, ?options: Array<ObjectCoroutineOption>) {
         super();
@@ -49,14 +51,16 @@ class ObjectCoroutine extends h2d.Object {
         }
         co.push(OnStart(() -> {triggerEvent(OnCoroutineStart);}));
         co.push(OnComplete(() -> {triggerEvent(OnCoroutineStopped);}));
-        
-        StartCoroutine(internalCoroutine, co);
+
+        isRemoved = false;
+        coroutineTag = StartCoroutine(internalCoroutine, co);
     }
 
     override function onRemove() {
         super.onRemove();
         triggerEvent(ObjectCoroutineEvent.OnRemove);
         isRemoved = true;
+        StopCoroutine(coroutineTag);
     }
 
     function triggerEvent(event: ObjectCoroutineEvent) {
