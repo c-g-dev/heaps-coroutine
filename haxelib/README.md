@@ -27,8 +27,6 @@ StartCoroutine((dt) -> { // Will start executing next frame
     return WaitNextFrame;
 });
 
-//...
-obj.remove(); //coroutine will automatically unwire itself on parent removal
 ```
 
 ## Notes
