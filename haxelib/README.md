@@ -27,11 +27,6 @@ StartCoroutine((dt) -> { // Will start executing next frame
     return WaitNextFrame;
 });
 
-// Easy attach to object
-obj.addChild(new ObjectCoroutine((dt) -> {
-    doStuff();
-    return WaitNextFrame;
-}));
 //...
 obj.remove(); //coroutine will automatically unwire itself on parent removal
 ```
