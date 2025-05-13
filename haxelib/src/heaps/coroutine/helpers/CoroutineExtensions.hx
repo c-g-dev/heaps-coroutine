@@ -1,5 +1,7 @@
 package heaps.coroutine.helpers;
 
+import heaps.coroutine.CoroutineSystem.StartCoroutine;
+
 class CoroutineExtensions {
     public static function run(coroutine:Coroutine):Void {
         StartCoroutine(coroutine);
@@ -7,7 +9,7 @@ class CoroutineExtensions {
 
     public static function toPromise(coroutine:Coroutine, ?start:Bool = true):Promise {
         return new Promise((resolve, reject) -> {
-            var wrappedCoroutine = (dt:Float) -> {
+            var wrappedCoroutine:Coroutine = (dt:Float) -> {
                 try {
                     var result = coroutine(dt);
                     switch result {

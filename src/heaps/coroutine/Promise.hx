@@ -2,25 +2,27 @@ package heaps.coroutine;
 
 private enum PromiseState {
     Pending;
-    Fulfilled(value: Any);
-    Rejected(error: Any);
+    Fulfilled(?value: Any);
+    Rejected(?error: Any);
 }
 
 class Promise {
     var state: PromiseState = Pending;
-    var thenHandlers: Array<(value: Any) -> Void> = [];
-    var catchHandlers: Array<(error: Any) -> Void> = [];
+    var thenHandlers: Array<(Any) -> Void> = [];
+    var catchHandlers: Array<(Any) -> Void> = [];
     var finallyHandlers: Array<() -> Void> = [];
 
-    public function new(executor: ((value: Any) -> Void, (error: Any) -> Void) -> Void) {
+    public function new(?executor: ((?value: Any) -> Void, (?error: Any) -> Void) -> Void) {
         try {
-            executor(fulfill, reject);
+            if(executor != null){
+                executor(fulfill, reject);
+            }
         } catch (e) {
             reject(e);
         }
     }
 
-    function fulfill(value: Any) {
+    public function fulfill(?value: Any) {
         if (state != Pending) return;
         state = Fulfilled(value);
         for (handler in thenHandlers) {
@@ -29,7 +31,7 @@ class Promise {
         runFinallyHandlers();
     }
 
-    function reject(error: Any) {
+    public function reject(?error: Any): Void {
         if (state != Pending) return;
         state = Rejected(error);
         for (handler in catchHandlers) {
@@ -77,32 +79,25 @@ class Promise {
         });
     }
 
-    public function catchError(onRejected: (error: Any) -> Any): Promise {
+    public function catchError(onRejected: Any -> Void): Promise {
         return new Promise((resolve, reject) -> {
             switch state {
-                case Pending:
+                case Pending: {
                     catchHandlers.push(error -> {
                         try {
-                            var result = onRejected(error);
-                            if (Std.isOfType(result, Promise)) {
-                                (cast result : Promise).then(resolve).catchError(reject);
-                            } else {
-                                resolve(result);
-                            }
+                            onRejected(error);
+                            resolve();
                         } catch (e) {
                             reject(e);
                         }
                     });
+                }
                 case Fulfilled(value):
                     resolve(value);
                 case Rejected(error):
                     try {
-                        var result = onRejected(error);
-                        if (Std.isOfType(result, Promise)) {
-                            (cast result : Promise).then(resolve).catchError(reject);
-                        } else {
-                            resolve(result);
-                        }
+                        onRejected(error);
+                        resolve();
                     } catch (e) {
                         reject(e);
                     }
@@ -131,7 +126,7 @@ class Promise {
 
     public static function fromCoroutine(coroutine: Coroutine): Promise {
         return new Promise((resolve, reject) -> {
-            var runner = (dt: Float) -> {
+            var runner: Coroutine = (dt: Float) -> {
                 try {
                     var result = coroutine(dt);
                     switch result {
@@ -146,7 +141,6 @@ class Promise {
                     return Stop;
                 }
             }
-            CoroutineRunner.instance.add(runner);
         });
     }
 
@@ -180,6 +174,12 @@ class Promise {
             for (promise in promises) {
                 promise.then(resolve).catchError(reject);
             }
+        });
+    }
+
+    public static function resolve() {
+        return new Promise((resolve, reject) -> {
+            resolve(null);
         });
     }
 } 
