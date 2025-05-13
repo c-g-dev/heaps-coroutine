@@ -1,5 +1,6 @@
 package heaps.coroutine;
 
+@:using(heaps.coroutine.helpers.CoroutineExtensions)
 typedef Coroutine = (dt: Float) -> FrameYield;
 
 enum FrameYield {
