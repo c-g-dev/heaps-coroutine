@@ -26,7 +26,7 @@ jobs:
         haxelib git domkit https://github.com/HeapsIO/domkit
         haxelib git hide https://github.com/HeapsIO/hide
         haxelib git hlsdl https://github.com/HaxeFoundation/hashlink master libs/sdl
-        haxelib git heaps https://github.com/HeapsIO/hide
+        haxelib git heaps https://github.com/HeapsIO/heaps
     - name: Build samples
       run: |
         haxe compile.hxml
