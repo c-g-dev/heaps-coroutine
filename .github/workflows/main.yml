@@ -1,0 +1,17 @@
+name: Haxe CI Build and Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  haxe-build-test:
+    uses: vegardit/haxe-reusable-workflows/.github/workflows/test-with-haxe.yml@v1
+    with:
+      runner-os: ubuntu-latest
+      haxe-version: 4.3.7
+      haxe-args: tests.hxml
+      haxe-libs: hx3compat hscript
+      test-hl: true
