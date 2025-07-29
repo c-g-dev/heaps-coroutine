@@ -13,5 +13,5 @@ jobs:
       runner-os: ubuntu-latest
       haxe-version: 4.3.7
       haxe-args: test/compile.hxml
-      haxe-libs: hx3compat ludi-commons heaps uuid
+      haxe-libs: ludi-commons heaps uuid
       test-hl: true
