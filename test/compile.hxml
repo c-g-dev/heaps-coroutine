@@ -5,6 +5,7 @@
 -lib ludi-commons
 -lib uuid
 -lib heaps
+-lib hlsdl
 
 -D windowSize=900x700
 
