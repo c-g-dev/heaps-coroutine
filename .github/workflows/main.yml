@@ -13,5 +13,8 @@ jobs:
       runner-os: ubuntu-latest
       haxe-version: 4.3.7
       haxe-args: test/compile.hxml
-      haxe-libs: ludi-commons heaps uuid
+      haxe-libs: ludi-commons heaps uuid hlsdl
       test-hl: true
+      before-tests: |
+        mkdir -p target
+        cp test/fmt.hdll target/
