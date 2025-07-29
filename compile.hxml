@@ -7,7 +7,6 @@
 -lib heaps
 -lib hlsdl
 
--Dno_ssl
 -D no_ssl
 
 -D windowSize=900x700
