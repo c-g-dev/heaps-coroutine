@@ -1,19 +1,19 @@
 {
-    "name": "heaps-coroutine",
-    "url" : "https://github.com/cardgdev/heaps-coroutine",
-    "description": "Portable coroutine system for Heaps. Autowires itself to the system loop, no configuration or boilerplate required.",
-    "license": "MIT",
-    "tags": [
-      "heaps", "util", "coroutine"
-    ],
-    "classPath": "src",
-    "contributors": [
-      "cgdev"
-    ],
-    "releasenote": "API improvements, simplifications",
-    "version": "0.0.2",
-    "dependencies": {
-		  "ludi-commons": "",
-      "heaps": ""
-	  }
+  "name": "heaps-coroutine",
+  "url" : "https://github.com/cardgdev/heaps-coroutine",
+  "description": "Plug-and-play coroutine system for Heaps",
+  "license": "MIT",
+  "tags": [
+    "heaps", "util", "coroutine"
+  ],
+  "classPath": "src",
+  "contributors": [
+    "cgdev"
+  ],
+  "releasenote": "Macros for 'await' + 'yield'",
+  "version": "2.0.0",
+  "dependencies": {
+    "ludi-commons": "",
+    "heaps": ""
   }
+}
