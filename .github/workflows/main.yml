@@ -16,6 +16,20 @@ jobs:
     - name: Print Haxe version
       run: |
         haxe --version
+    - name: Install dependencies for HashLink
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libpng-dev libturbojpeg-dev libvorbis-dev libopenal-dev libsdl2-dev libmbedtls-dev libuv1-dev
+    - name: Install HashLink
+      run: |
+        git clone https://github.com/HaxeFoundation/hashlink.git
+        cd hashlink
+        make
+        sudo make install
+        cd ..
+    - name: Verify HashLink installation
+      run: |
+        hl --version
     - name: Install haxelib deps
       run: |
         haxelib install ludi-commons
@@ -33,4 +47,3 @@ jobs:
     - name: Run tests
       run: |
         hl test/build.hl
-        
