@@ -1,18 +1,30 @@
-name: Haxe CI Build and Test
+name: CI
 
 on:
   push:
-    branches: [ master ]
   pull_request:
-    branches: [ master ]
+  workflow_dispatch:
 
 jobs:
-  haxe-build-test:
-    uses: vegardit/haxe-reusable-workflows/.github/workflows/test-with-haxe.yml@v1
-    with:
-      runner-os: ubuntu-latest
-      haxe-version: 4.3.7
-      haxe-args: compile.hxml
-      haxe-libs: ludi-commons heaps uuid hlsdl
-      test-hl: true
-      before-tests: sudo ldconfig
+  build-samples:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: krdlab/setup-haxe@v1
+      with:
+        haxe-version: 4.3.6
+    - name: Print Haxe version
+      run: |
+        haxe --version
+    - name: Install haxelib deps
+      run: |
+        haxelib git format https://github.com/HaxeFoundation/format
+        haxelib git hxbit https://github.com/ncannasse/hxbit
+        haxelib git hscript https://github.com/HaxeFoundation/hscript
+        haxelib git domkit https://github.com/HeapsIO/domkit
+        haxelib git hide https://github.com/HeapsIO/hide
+        haxelib git hlsdl https://github.com/HaxeFoundation/hashlink master libs/sdl
+        haxelib git heaps https://github.com/HeapsIO/hide
+    - name: Build samples
+      run: |
+        haxe compile.hxml
