@@ -15,3 +15,4 @@ jobs:
       haxe-args: compile.hxml
       haxe-libs: ludi-commons heaps uuid hlsdl
       test-hl: true
+      before-tests: sudo ldconfig
