@@ -18,6 +18,4 @@ jobs:
       pre-steps: |
         - name: Copy fmt.hdll to Hashlink install dir
           shell: bash
-          env:
-            HASHLINK_DIR: ${{ runner.temp }}/haxe/targets/hashlink
-          run: cp test/fmt.hdll "$HASHLINK_DIR"
+          run: cp path/to/fmt.hdll "${{ runner.temp }}/haxe/targets/hashlink"
