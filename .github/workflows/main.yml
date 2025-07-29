@@ -16,15 +16,15 @@ jobs:
     - name: Print Haxe version
       run: |
         haxe --version
-    - name: Install dependencies for HashLink and Xvfb
+    - name: Install dependencies for HashLink
       run: |
         sudo apt-get update
-        sudo apt-get install -y libpng-dev libturbojpeg-dev libvorbis-dev libopenal-dev libsdl2-dev libmbedtls-dev libuv1-dev libglu1-mesa-dev mesa-common-dev libgl1-mesa-dev xvfb
+        sudo apt-get install -y libpng-dev libturbojpeg-dev libvorbis-dev libopenal-dev libsdl2-dev libmbedtls-dev libuv1-dev libglu1-mesa-dev xvfb
     - name: Install HashLink
       run: |
         git clone https://github.com/HaxeFoundation/hashlink.git
         cd hashlink
-        git checkout 1.14  # Pinned to stable version 1.14
+        git checkout master
         make
         sudo make install
         cd ..
@@ -40,11 +40,11 @@ jobs:
         haxelib git hscript https://github.com/HaxeFoundation/hscript
         haxelib git domkit https://github.com/HeapsIO/domkit
         haxelib git hide https://github.com/HeapsIO/hide
-        haxelib git hlsdl https://github.com/HaxeFoundation/hashlink 1.14 libs/sdl  # Pinned to match HashLink 1.14
+        haxelib git hlsdl https://github.com/HaxeFoundation/hashlink master libs/sdl
         haxelib git heaps https://github.com/HeapsIO/heaps
     - name: Build tests
       run: |
         haxe test/compile.hxml
     - name: Run tests
       run: |
-        xvfb-run hl test/build.hl
+        hl test/build.hl
