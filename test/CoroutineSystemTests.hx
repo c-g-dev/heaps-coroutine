@@ -1,3 +1,5 @@
+package test;
+
 import heaps.coroutine.Coroutine;
 import heaps.coroutine.Coroutine.CoroutineContext;
 import heaps.coroutine.CoroutineSystem;

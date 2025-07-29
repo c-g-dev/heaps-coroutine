@@ -1,4 +1,5 @@
 -cp ./
+-cp src
 -cp ../src
 
 -lib ludi-commons
@@ -7,4 +8,4 @@
 
 -D windowSize=900x700
 
---main CoroutineSystemTests
+--main test.CoroutineSystemTests
