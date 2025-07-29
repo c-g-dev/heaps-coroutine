@@ -19,18 +19,22 @@ jobs:
     - name: Install dependencies for HashLink
       run: |
         sudo apt-get update
-        sudo apt-get install -y libpng-dev libturbojpeg-dev libvorbis-dev libopenal-dev libsdl2-dev libmbedtls-dev libuv1-dev libglu1-mesa-dev
+        sudo apt-get install -y libpng-dev libturbojpeg-dev libvorbis-dev libopenal-dev libsdl2-dev libmbedtls-dev libuv1-dev libglu1-mesa-dev mesa-common-dev libgl1-mesa-dev
     - name: Install HashLink
       run: |
         git clone https://github.com/HaxeFoundation/hashlink.git
         cd hashlink
-        git checkout master
+        git checkout 1.14  # Pinned to stable version 1.14
         make
         sudo make install
         cd ..
     - name: Verify HashLink installation
       run: |
         hl --version
+    - name: Check OpenGL version
+      run: |
+        sudo apt-get install -y mesa-utils
+        glxinfo | grep "OpenGL version"
     - name: Install haxelib deps
       run: |
         haxelib install ludi-commons
@@ -40,7 +44,7 @@ jobs:
         haxelib git hscript https://github.com/HaxeFoundation/hscript
         haxelib git domkit https://github.com/HeapsIO/domkit
         haxelib git hide https://github.com/HeapsIO/hide
-        haxelib git hlsdl https://github.com/HaxeFoundation/hashlink master libs/sdl
+        haxelib git hlsdl https://github.com/HaxeFoundation/hashlink 1.14 libs/sdl  # Pin hlsdl to match HashLink 1.14
         haxelib git heaps https://github.com/HeapsIO/heaps
     - name: Build tests
       run: |
