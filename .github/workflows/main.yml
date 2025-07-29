@@ -15,5 +15,9 @@ jobs:
       haxe-args: test/compile.hxml
       haxe-libs: ludi-commons heaps uuid hlsdl
       test-hl: true
-      before-tests: |
-        cp test/fmt.hdll /home/runner/work/_temp/haxe/targets/hashlink/
+      pre-steps: |
+        - name: Copy fmt.hdll to Hashlink install dir
+          shell: bash
+          env:
+            HASHLINK_DIR: ${{ runner.temp }}/haxe/targets/hashlink
+          run: cp test/fmt.hdll "$HASHLINK_DIR"
