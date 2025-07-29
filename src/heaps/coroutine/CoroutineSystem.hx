@@ -1,229 +1,136 @@
 package heaps.coroutine;
 
-import heaps.coroutine.Coroutine.CoroutineOption;
-import heaps.coroutine.Coroutine.FrameYield;
+import heaps.coroutine.Coroutine.CoroutineContext;
 import heaps.coroutine.Coroutine.CoroutinePriority;
-import haxe.Timer;
-import ludi.commons.util.UUID;
-import hxd.System;
+import heaps.coroutine.Future;
+import ludi.commons.collections.Stack;
 
+@:access(heaps.coroutine.CoroutineContext)
+@:access(heaps.coroutine.Future)
 class CoroutineSystem {
-    public static var MAIN = new CoroutineSystem();
-    var routines: Map<String, InternalCoroutineContext> = [];
-    var routinesByPriority: Map<CoroutinePriority, Array<String>> = [];
-    var suspendedDependentRoutines: Map<String, Array<InternalCoroutineContext>> = [];
+	public static var MAIN:CoroutineSystem = new CoroutineSystem();
 
-    public function new() {
-        routinesByPriority[Controls] = [];
-        routinesByPriority[Processing] = [];
-        routinesByPriority[Rendering] = [];
-    }
+	var routines:Map<String, CoroutineContext> = [];
+	var routinesByPriority:Map<CoroutinePriority, Array<CoroutineContext>> = [];
 
-    var didInit: Bool = false;
-    var isWiredToMainLoop: Bool = false;
-    private function init() {
-        if(!didInit){
-            #if coroutine_manual_wiring
-            #else
-            wireCoroutineSystemToMainLoop(MAIN);
-            #end
-            didInit = true;
-        }
-    }
+	var routinesToRemoveThisFrame:Array<String> = [];
+	var routinesToNotifyThisFrame:Array<CoroutineContext> = [];
 
-    private static var CurrentLoopFunction: Void -> Void;
-    private static var RegisteredLoopFunc: Void -> Void;
-    private static function wireCoroutineSystemToMainLoop(system: CoroutineSystem) {
-        Timer.delay(() -> {
-            if((System.getCurrentLoop() != CurrentLoopFunction) || CurrentLoopFunction == null){
-                RegisteredLoopFunc = System.getCurrentLoop();
-                CurrentLoopFunction = () -> {
-                    RegisteredLoopFunc();
-                    system.update(hxd.Timer.dt);
-                }
-                System.setLoop(CurrentLoopFunction);
-                system.isWiredToMainLoop = true;
-            }
-        }, 0);
-    }
+	var contextStack:Stack<CoroutineContext> = new Stack();
 
-    var routinesToRemove: Array<CoroutineContextResult> = [];
-    var eachFireResult: CoroutineContextResult = null;
-    var eachRoutine: InternalCoroutineContext;
-    public function update(dt: Float) {
-        routinesToRemove = [];
-        for(currentRoutines in routinesByPriority){
-            for(eachRoutineTag in currentRoutines){
-                eachRoutine = routines[eachRoutineTag];
-                if(eachRoutine.checkIfShouldFire(dt)){
-                    eachFireResult = eachRoutine.fire(dt);
-                    switch eachFireResult {
-                        case Dispose(_) | Suspend(_, _): {
-                            routinesToRemove.push(eachFireResult);
-                        }
-                        default:
-                    }
-                }
-            }
-        }
-        for (r in routinesToRemove) {
-            switch r {
-                case Dispose(cc): {
-                    routines.remove(cc.tag);
-                    routinesByPriority[cc.priority].remove(cc.tag);
-                    if(suspendedDependentRoutines.exists(cc.tag)){
-                        for (cc in suspendedDependentRoutines.get(cc.tag)) {
-                            routines[cc.tag] = cc;
-                            routinesByPriority[cc.priority].push(cc.tag);
-                        }
-                        suspendedDependentRoutines.remove(cc.tag);
-                    }
-                }
-                case Suspend(context, waitForCoroutine): {
-                    suspend(context.tag, waitForCoroutine);
-                }
-                default:
-            }
-           
-           
-        }
-    }
+	public function new() {
+		routinesByPriority[Controls] = [];
+		routinesByPriority[Processing] = [];
+		routinesByPriority[Rendering] = [];
+	}
 
-    
-    public function add(cb: (Float) -> FrameYield, ?ops: Array<CoroutineOption>): String {
-        init();
-        var cc = new InternalCoroutineContext(cb, ops);
-        routines[cc.tag] = cc;
-        routinesByPriority[cc.priority].push(cc.tag);
-        return cc.tag;
-    }
+	var didInit:Bool = false;
+	var isWiredToMainLoop:Bool = false;
 
-    public function remove(tag: String) {
-        var cc = routines[tag];
-        routines.remove(tag);
-        routinesByPriority[cc.priority].remove(tag);
-    }
+	private function init() {
+		if (!didInit) {
+			#if coroutine_manual_wiring
+			#else
+			wireCoroutineSystemToMainLoop(MAIN);
+			#end
+			didInit = true;
+		}
+	}
 
-    public function suspend(tagToSuspend: String, dependentTag: String) {
-        var cc = routines[tagToSuspend];
-        remove(tagToSuspend);
-        if(!suspendedDependentRoutines.exists(dependentTag)){
-            suspendedDependentRoutines[dependentTag] = [];
-        }
-        suspendedDependentRoutines[dependentTag].push(cc);
-    }
+	private static var CurrentLoopFunction:Void->Void;
+	private static var RegisteredLoopFunc:Void->Void;
 
-    
-}
+	private static function wireCoroutineSystemToMainLoop(system:CoroutineSystem) {
+		haxe.Timer.delay(() -> {
+			if ((hxd.System.getCurrentLoop() != CurrentLoopFunction) || CurrentLoopFunction == null) {
+				RegisteredLoopFunc = hxd.System.getCurrentLoop();
+				CurrentLoopFunction = () -> {
+					RegisteredLoopFunc();
+					system.update();
+				}
+				hxd.System.setLoop(CurrentLoopFunction);
+				system.isWiredToMainLoop = true;
+			}
+		}, 0);
+	}
 
-class InternalCoroutineContext {
-    public var tag: String; 
-    public var priority: CoroutinePriority = Processing;
-    public var args: Dynamic;
+	public function update() {
+		var dt:Float = hxd.Timer.dt;
 
-    var didStart: Bool = false;
-    var framesToWait: Int = 0;
-    var timeToWait: Float = 0;
-    var lastResult: FrameYield = null;
+		for (arr in routinesByPriority) {
+			for (ctx in arr) {
+				if (!ctx.hasStarted) {
+					ctx.hasStarted = true;
+					if (ctx.onStart != null)
+						ctx.onStart();
+				}
 
-    var onStart: Void -> Void = null;
-    var onComplete: Void -> Void = null;
-    var onFrame: (Float) -> FrameYield = null;
-    
-    public function new(onFrame: (Float) -> FrameYield, options: Array<CoroutineOption>) {
-      this.tag = UUID.generate();
-      this.onFrame = onFrame;
-      if(options != null){
-        for (option in options) {
-            switch option {
-                case Priority(p): {
-                    priority = p;
-                }
-                case OnStart(cb): {
-                    onStart = cb;
-                }
-                case OnComplete(cb): {
-                    onComplete = cb;
-                }
-            }
-          }
-      }
-    }
+				if (shouldFireThisFrame(ctx, dt)) {
+					ctx.invoke();
+				}
 
-    public function checkIfShouldFire(dt: Float): Bool {
-        if(this.lastResult == null){
-            return true;
-        }
-        switch this.lastResult {
-            case Suspend(_): {
-                return true;
-            }
-            case Stop: {
-                return false;
-            }
-            case WaitNextFrame: {
-                return true;
-            }
-            case WaitFrames(f): {
-                if(this.framesToWait > 0){
-                    this.framesToWait -= 1;
-                    return false;
-                }
-                return true;
-            }
-            case WaitSeconds(f): {
-                if(this.timeToWait > 0){
-                    this.timeToWait -= dt;
-                    return false;
-                }
-                return true;
-            }
-        }
-        return false;
-    }
+				ctx.frameCount++;
+			}
+		}
 
-    public function fire(dt: Float): CoroutineContextResult {
-        if(!didStart && (onStart != null)){
-            onStart();
-            didStart = true;
-        }
-        if(onFrame != null){
-            lastResult = onFrame(dt); 
-            switch lastResult {
-                case WaitFrames(f): {
-                    this.framesToWait = f;
-                }
-                case WaitSeconds(f): {
-                    this.timeToWait = f;
-                }
-                default:
-            }
-        }
-        switch lastResult {
-            case Suspend(waitForCoroutine): return Suspend(this, waitForCoroutine);
-            case Stop:{ 
-                if(onComplete != null){
-                    onComplete();
-                }
-                return Dispose(this);
-            };
-            default: return Retain;
-        }
-    }
-    
-}
+		for (id in routinesToRemoveThisFrame) {
+			var ctx = routines[id];
+			if (ctx != null) {
+				routines.remove(id);
+				routinesByPriority[ctx.priority].remove(ctx);
+			}
+		}
+		routinesToRemoveThisFrame.resize(0);
 
-enum CoroutineContextResult {
-    Retain;
-    Dispose(context: InternalCoroutineContext);
-    Suspend(context: InternalCoroutineContext, waitForCoroutine: String);
-}
+		for (ctx in routinesToNotifyThisFrame) {
+			ctx.future.resolve(ctx.result);
+		}
+		routinesToNotifyThisFrame.resize(0);
+	}
 
+	public function add<T>(ctx:CoroutineContext<T>):Void {
+		init();
+		ctx.system = this;
+		routines[ctx.uuid] = ctx;
+		routinesByPriority[ctx.priority].push(ctx);
+	}
 
-function StartCoroutine<T>(cb: (Float) -> FrameYield, ?ops: Array<CoroutineOption>): String {
-    return CoroutineSystem.MAIN.add(cb, ops);
-}
+	public function remove(ctx:CoroutineContext):Void {
+		if (ctx == null)
+			return;
+		routines.remove(ctx.uuid);
+		routinesByPriority[ctx.priority].remove(ctx);
+	}
 
-function StopCoroutine<T>(tag: String): Void {
-    return CoroutineSystem.MAIN.remove(tag);
+	private inline function shouldFireThisFrame(ctx:CoroutineContext, dt:Float):Bool {
+		if (ctx.manuallyPaused)
+			return false;
+		if (ctx.lastResult == null)
+			return true;
+		if (ctx.runManually)
+			return false;
+
+		switch ctx.lastResult {
+			case Stop:
+				return false;
+			case WaitNextFrame:
+				return true;
+			case WaitFrames(_):
+				if (ctx.framesToWait > 0) {
+					ctx.framesToWait -= 1;
+					return false;
+				}
+				return true;
+			case WaitSeconds(_):
+				if (ctx.timeToWait > 0) {
+					ctx.timeToWait -= dt;
+					return false;
+				}
+				return true;
+			case Return(_):
+				return true;
+			case Suspend(_):
+				return !ctx.isWaiting;
+		}
+	}
 }

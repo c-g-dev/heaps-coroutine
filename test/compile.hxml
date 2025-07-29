@@ -1,5 +1,5 @@
--cp src
-
+-cp ./
+-cp ../src
 
 -lib ludi-commons
 -lib uuid
@@ -10,4 +10,4 @@
 
 -D windowSize=900x700
 
---main heaps.coroutine.CoroutineSystemTests
+--main CoroutineSystemTests
