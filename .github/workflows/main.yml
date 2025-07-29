@@ -27,6 +27,7 @@ jobs:
         haxelib git hide https://github.com/HeapsIO/hide
         haxelib git hlsdl https://github.com/HaxeFoundation/hashlink master libs/sdl
         haxelib git heaps https://github.com/HeapsIO/heaps
-    - name: Build samples
+    - name: Run tests
       run: |
-        haxe compile.hxml
+        haxe test/compile.hxml
+        hl test/build.hl
