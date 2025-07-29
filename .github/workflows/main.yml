@@ -19,7 +19,7 @@ jobs:
     - name: Install dependencies for HashLink and Xvfb
       run: |
         sudo apt-get update
-        sudo apt-get install -y libpng-dev libturbojpeg-dev libvorbis-dev libopenal-dev libsdl2-dev libmbedtls-dev libuv1-dev libglu1-mesa-dev mesa-common-dev libgl1-mesa-dev xvfb mesa-utils
+        sudo apt-get install -y libpng-dev libturbojpeg-dev libvorbis-dev libopenal-dev libsdl2-dev libmbedtls-dev libuv1-dev libglu1-mesa-dev mesa-common-dev libgl1-mesa-dev xvfb
     - name: Install HashLink
       run: |
         git clone https://github.com/HaxeFoundation/hashlink.git
@@ -31,9 +31,6 @@ jobs:
     - name: Verify HashLink installation
       run: |
         hl --version
-    - name: Check OpenGL version
-      run: |
-        xvfb-run glxinfo | grep "OpenGL version"
     - name: Install haxelib deps
       run: |
         haxelib install ludi-commons
