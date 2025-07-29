@@ -5,8 +5,6 @@
 -lib uuid
 -lib heaps
 
--hl build.hl
-
 -D windowSize=900x700
 
 --main CoroutineSystemTests
