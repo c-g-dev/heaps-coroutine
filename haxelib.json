@@ -1,6 +1,6 @@
 {
   "name": "heaps-coroutine",
-  "url" : "https://github.com/cardgdev/heaps-coroutine",
+  "url" : "https://github.com/c-g-dev/heaps-coroutine",
   "description": "Plug-and-play coroutine system for Heaps",
   "license": "MIT",
   "tags": [
@@ -10,7 +10,7 @@
   "contributors": [
     "cgdev"
   ],
-  "releasenote": "Macros for 'await' + 'yield'",
+  "releasenote": "added macros for Await + Yield",
   "version": "2.0.0",
   "dependencies": {
     "ludi-commons": "",
