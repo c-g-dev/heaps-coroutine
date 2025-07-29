@@ -16,6 +16,9 @@ jobs:
     - name: Print Haxe version
       run: |
         haxe --version
+    - name: Check OpenGL version
+      run: |
+        sudo apt-get install -y mesa-utils
     - name: Install dependencies for HashLink
       run: |
         sudo apt-get update
@@ -31,9 +34,6 @@ jobs:
     - name: Verify HashLink installation
       run: |
         hl --version
-    - name: Check OpenGL version
-      run: |
-        sudo apt-get install -y mesa-utils
     - name: Install haxelib deps
       run: |
         haxelib install ludi-commons
