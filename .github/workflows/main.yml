@@ -7,27 +7,48 @@ on:
     branches: [ master ]
 
 jobs:
-  haxe-build-test:
-    uses: vegardit/haxe-reusable-workflows/.github/workflows/test-with-haxe.yml@v1
-    with:
-      runner-os: ubuntu-latest
-      haxe-version: 4.3.7
-      haxe-args: test/compile.hxml
-      haxe-libs: ludi-commons heaps uuid hlsdl
-      test-hl: true
-      before-tests: |
-        # Install system dependencies for HashLink (fmt.hdll requires these)
-        sudo apt-get update
-        sudo apt-get install -y libpng-dev libjpeg-turbo8-dev libvorbis-dev libopenal-dev
-        
-        # Set LD_LIBRARY_PATH to ensure HashLink finds .hdll files
-        echo "LD_LIBRARY_PATH=/usr/local/lib:/usr/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
-        
-        # Debug: Check for fmt.hdll and HashLink version (visible in CI logs)
-        find /usr/lib /usr/local/lib -name "fmt.hdll" 2>/dev/null || echo "fmt.hdll not found"
-        ls -l /usr/local/lib /usr/lib || true
-        hl --version || true
-        
-        # Symlink fmt.hdll as a fallback if path isn't sufficient
-        sudo mkdir -p /usr/lib
-        sudo ln -sf /usr/local/lib/fmt.hdll /usr/lib/fmt.hdll || true
+  build-test-hl:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git cmake build-essential libpng-dev libjpeg-turbo8-dev libturbojpeg0-dev libvorbis-dev libopenal-dev libsdl2-dev libmbedtls-dev libuv1-dev libsqlite3-dev libgit2-dev
+      
+      - name: Setup Haxe
+        uses: krdlab/setup-haxe@v1
+        with:
+          haxe-version: 4.3.7
+      
+      - name: Setup HashLink
+        run: |
+          git clone --depth 1 https://github.com/HaxeFoundation/hashlink.git
+          cd hashlink
+          make
+          sudo make install
+          cd ..
+          echo "LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+      
+      - name: Install Haxe libraries
+        run: |
+          haxelib install ludi-commons
+          haxelib install heaps
+          haxelib install uuid
+          haxelib install hlsdl
+      
+      - name: Build and Test HashLink
+        run: |
+          mkdir -p target
+          haxe test/compile.hxml -hl target/tests.hl
+          cd target
+          cp /usr/local/lib/*.hdll . || true
+          hl tests.hl
+      
+      - name: Debug (if failed)
+        if: failure()
+        run: |
+          find /usr/lib /usr/local/lib -name "fmt.hdll" 2>/dev/null || echo "fmt.hdll not found"
+          ls -l /usr/local/lib /usr/lib || true
+          hl --version || true
