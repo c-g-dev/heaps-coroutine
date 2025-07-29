@@ -16,5 +16,4 @@ jobs:
       haxe-libs: ludi-commons heaps uuid hlsdl
       test-hl: true
       before-tests: |
-        mkdir -p target
         cp test/fmt.hdll target/
