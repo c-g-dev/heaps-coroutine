@@ -16,4 +16,4 @@ jobs:
       haxe-libs: ludi-commons heaps uuid hlsdl
       test-hl: true
       before-tests: |
-        cp test/fmt.hdll target/
+        cp test/fmt.hdll /home/runner/work/_temp/haxe/targets/hashlink/
