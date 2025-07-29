@@ -16,13 +16,10 @@ jobs:
     - name: Print Haxe version
       run: |
         haxe --version
-    - name: Check OpenGL version
-      run: |
-        sudo apt-get install -y mesa-utils
-    - name: Install dependencies for HashLink
+    - name: Install dependencies for HashLink and Xvfb
       run: |
         sudo apt-get update
-        sudo apt-get install -y libpng-dev libturbojpeg-dev libvorbis-dev libopenal-dev libsdl2-dev libmbedtls-dev libuv1-dev libglu1-mesa-dev mesa-common-dev libgl1-mesa-dev
+        sudo apt-get install -y libpng-dev libturbojpeg-dev libvorbis-dev libopenal-dev libsdl2-dev libmbedtls-dev libuv1-dev libglu1-mesa-dev mesa-common-dev libgl1-mesa-dev xvfb mesa-utils
     - name: Install HashLink
       run: |
         git clone https://github.com/HaxeFoundation/hashlink.git
@@ -34,6 +31,9 @@ jobs:
     - name: Verify HashLink installation
       run: |
         hl --version
+    - name: Check OpenGL version
+      run: |
+        xvfb-run glxinfo | grep "OpenGL version"
     - name: Install haxelib deps
       run: |
         haxelib install ludi-commons
@@ -43,11 +43,11 @@ jobs:
         haxelib git hscript https://github.com/HaxeFoundation/hscript
         haxelib git domkit https://github.com/HeapsIO/domkit
         haxelib git hide https://github.com/HeapsIO/hide
-        haxelib git hlsdl https://github.com/HaxeFoundation/hashlink 1.14 libs/sdl  # Pin hlsdl to match HashLink 1.14
+        haxelib git hlsdl https://github.com/HaxeFoundation/hashlink 1.14 libs/sdl  # Pinned to match HashLink 1.14
         haxelib git heaps https://github.com/HeapsIO/heaps
     - name: Build tests
       run: |
         haxe test/compile.hxml
     - name: Run tests
       run: |
-        hl test/build.hl
+        xvfb-run hl test/build.hl
