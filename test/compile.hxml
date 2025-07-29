@@ -11,6 +11,6 @@
 
 -D windowSize=900x700
 
--hl build.hl
+-hl ./test/build.hl
 
 --main test.CoroutineSystemTests
