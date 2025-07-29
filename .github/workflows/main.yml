@@ -12,10 +12,6 @@ jobs:
     with:
       runner-os: ubuntu-latest
       haxe-version: 4.3.7
-      haxe-args: test/compile.hxml
+      haxe-args: compile.hxml
       haxe-libs: ludi-commons heaps uuid hlsdl
       test-hl: true
-      pre-steps: |
-        - name: Copy fmt.hdll to Hashlink install dir
-          shell: bash
-          run: cp path/to/fmt.hdll "${{ runner.temp }}/haxe/targets/hashlink"

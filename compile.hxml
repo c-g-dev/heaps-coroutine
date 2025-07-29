@@ -1,13 +1,12 @@
+-cp ./
 -cp src
-
+-cp ../src
 
 -lib ludi-commons
 -lib uuid
 -lib heaps
 -lib hlsdl
 
--hl build.hl
-
 -D windowSize=900x700
 
---main heaps.coroutine.CoroutineSystemTests
+--main test.CoroutineSystemTests
