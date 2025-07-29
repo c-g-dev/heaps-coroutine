@@ -4,7 +4,6 @@
 -lib ludi-commons
 -lib uuid
 -lib heaps
--lib hlsdl
 
 -hl build.hl
 
