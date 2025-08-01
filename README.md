@@ -24,7 +24,7 @@ No need to wire to `update()` or include any init macros. When you start a corou
 
 ```haxe
 Coro.start(function (ctx) {
-    sprite.alpha += 0.1 * ct.dt;
+    sprite.alpha += 0.1 * ctx.dt;
     if(sprite.alpha >= 1) {
         return Stop;
     }
@@ -61,7 +61,9 @@ Coro.start( (c) -> {
 ## Overview
 
 ```haxe
-Coro.start((dt) -> { //run this block every frame
+Coro.start((ctx) -> { // CoroutineContext -> FrameYield
+    //run this block every frame
+
     doStuffOnFrame();
 
     //return an option from FrameYield enum
@@ -72,7 +74,7 @@ Coro.start((dt) -> { //run this block every frame
     return Return(value:T); //stops coroutine and returns a value, retrievable from coroutine.future().
     return Suspend(future:Future); //suspends this coroutine until the passed in future resovles
 
-    //await functionality, macro funcrion ro suspend here until otherCoroutine finishes
+    //await functionality, macro funcrion to suspend here until otherCoroutine finishes
     //read below for more info
     otherCoroutine.await(); 
 
@@ -88,6 +90,46 @@ Coro.start((dt) -> { //run this block every frame
     });
 });
 ```
+
+Pass into `Coro.start()` a function of any of the following:
+
+- `CoroutineContext -> FrameYield`
+- `Float (delta time) -> FrameYield`
+- `Void -> FrameYield`
+
+---
+
+## Once
+
+`Coro.once()` ensures that a block of code inside a coroutine executes only once.
+
+```haxe
+Coro.start((ctx) -> { 
+    Coro.once(() -> {trace("first frame");});
+    trace("every frame");
+    if(ctx.frameCount > 1) {
+        Coro.start((_) -> {
+            Coro.once(() -> {trace("first frame sunroutine");}); //onces are correctly scoped only to the coroutines in which they are called
+            return WaitNextFrame;
+        }
+    }
+    return WaitNextFrame;
+});
+
+//Output:
+    //first frame (frame 0)
+    //every frame (frame 0)
+    //every frame (frame 1)
+    //every frame (frame 2)
+    //first frame sunroutine (frame 2)
+    //every frame (frame 3)
+    //every frame (frame 4)
+    //every frame (every subsequent frame until coroutine is stopped)
+```
+
+`Coro.once()` works at every level of nesting as long as it is called inside a coroutine. Because all coroutine executions are handled by a centralized system, we are always able to track which coroutine is currently being executed by maintaining a stack which pushes before entering the coroutine and popping on exit. See `CoroutineSystem.hx` for more details.
+
+You can also achieve similar results by gating on 
 
 ---
 
