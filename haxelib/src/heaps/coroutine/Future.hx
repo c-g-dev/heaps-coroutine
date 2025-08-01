@@ -30,7 +30,7 @@ class Future<T = Dynamic> {
 		return future;
 	}
 
-	private function resolve(value:T):Void {
+	public function resolve(value:T):Void {
 		if (isComplete)
 			return;
 		_result = value;
@@ -62,5 +62,11 @@ class Future<T = Dynamic> {
 			eachFuture.then((value) -> future.resolve(value));
 		}
 		return future;
+	}
+	
+	public static function immediate(): Future {
+		var f = new Future();
+		f.isComplete = true;
+		return f;
 	}
 }
