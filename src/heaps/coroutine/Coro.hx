@@ -37,11 +37,11 @@ class Coro {
 
     public static macro function yield(callingExpr:ExprOf<FrameYield>):Expr {
         return macro {
-            if(!heaps.coroutine.CoroUtils.hasNextOnce()){
+            if(!heaps.coroutine.Coroutine.CoroUtils.hasNextOnce()){
                 return heaps.coroutine.Coro.once(() -> return $callingExpr);
             }
             else {
-                heaps.coroutine.CoroUtils.incrementOnce();
+                heaps.coroutine.Coroutine.CoroUtils.incrementOnce();
             }
         }
     }

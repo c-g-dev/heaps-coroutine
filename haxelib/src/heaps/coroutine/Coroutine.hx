@@ -1,5 +1,6 @@
 package heaps.coroutine;
 
+import heaps.coroutine.ext.CoroutineExtensions;
 import haxe.extern.EitherType;
 import haxe.ds.Either;
 import heaps.coroutine.ds.MaybeReturn;
@@ -15,6 +16,11 @@ abstract class CoroutineObject<T = Dynamic> extends CoroutineContext<T> {
 	}
 
 	private abstract function onFrame(ctx:CoroutineContext<T>):FrameYield<T>;
+
+	public function start(): Future<T> {
+		CoroutineSystem.MAIN.add(this);
+		return this.future;
+	}
 }
 
 abstract CoroutineFunction<T = Dynamic>(CoroutineBaseFunction<T>) from CoroutineBaseFunction<T> to CoroutineBaseFunction<T> {
@@ -81,7 +87,7 @@ class CoroutineContext<T = Dynamic> {
 	var result(default, null):Dynamic;
 	var priority(default, null):CoroutinePriority = Processing;
 	var lastResult:FrameYield = null;
-	var system:CoroutineSystem = null;
+	var system:CoroutineSystem = CoroutineSystem.MAIN;
 
 	var onceCallbacks:Array<Void->Dynamic> = [];
 	var onceResults:Array<Dynamic> = [];
@@ -99,7 +105,7 @@ class CoroutineContext<T = Dynamic> {
 
 	private inline function invoke():FrameYield<T> {
 		onceIndex = 0;
-
+		trace("invoke system: " + system);
 		system.contextStack.push(this);
 		var res = coro(this);
 		system.contextStack.pop();

@@ -23,7 +23,10 @@ class Sequence extends CoroutineObject {
 		for (child in children) {
 			if (child.context().isComplete)
 				continue;
-			return child.context().invoke();
+			var res = child.context().invoke();
+			if (child.context().isComplete)
+				return WaitNextFrame;
+			return res;
 		}
 		return Stop;
 	}

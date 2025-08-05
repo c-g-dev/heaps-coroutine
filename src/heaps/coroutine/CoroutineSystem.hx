@@ -89,8 +89,8 @@ class CoroutineSystem {
 	}
 
 	public function add<T>(ctx:CoroutineContext<T>):Void {
-		init();
 		ctx.system = this;
+		init();
 		routines[ctx.uuid] = ctx;
 		routinesByPriority[ctx.priority].push(ctx);
 	}
