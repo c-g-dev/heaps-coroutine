@@ -72,6 +72,7 @@ class CoroutineContext<T = Dynamic> {
 	public var uuid(default, null):String;
 
 	public var dt(get, null):Float;
+	public var elapsed(get, null):Float = 0;
 	public var frameCount(default, null):Int = 0;
 	public var hasStarted(default, null):Bool = false;
 	public var isWaiting(default, null):Bool = false;

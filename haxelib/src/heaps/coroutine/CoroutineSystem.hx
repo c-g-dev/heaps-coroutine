@@ -70,6 +70,7 @@ class CoroutineSystem {
 				}
 
 				ctx.frameCount++;
+				ctx.elapsed += dt;
 			}
 		}
 
