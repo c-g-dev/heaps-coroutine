@@ -29,7 +29,7 @@ class FutureMacroExtensions {
 				if (!__future.isComplete) {
 					return heaps.coroutine.FrameYield.Suspend(__future);
 				} else {
-					__awaitResult = __future._result;
+					@:privateAccess __awaitResult = __future._result;
 				}
 
 				__awaitResult;
