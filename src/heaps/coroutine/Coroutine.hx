@@ -83,16 +83,27 @@ class CoroutineContext<T = Dynamic> {
 	var timeToWait:Float = 0;
 	var manuallyPaused:Bool = false;
 	var runManually:Bool = false;
-	var future:Future<T>;
+	public var future(default, null):Future<T>;
 	var onStart:Void->Void = null;
 	var result(default, null):Dynamic;
 	var priority(default, null):CoroutinePriority = Processing;
 	var lastResult:FrameYield = null;
 	var system:CoroutineSystem = CoroutineSystem.MAIN;
+	var data: Map<String, Dynamic>;
 
 	var onceCallbacks:Array<Void->Dynamic> = [];
 	var onceResults:Array<Dynamic> = [];
 	var onceIndex:Int = 0;
+
+	public function getData(key: String): Dynamic {
+		if(data == null) return null;
+		return data[key];
+	}
+
+	public function setData(key: String, value: Dynamic): Void {
+		if(data == null) data = [];
+		data[key] = value;
+	}
 
 	private inline function get_dt():Float {
 		return Timer.dt;
@@ -104,11 +115,11 @@ class CoroutineContext<T = Dynamic> {
 		this.future = new Future();
 	}
 
-	private inline function invoke():FrameYield<T> {
+	private function invoke():FrameYield<T> {
 		onceIndex = 0;
-		trace("invoke system: " + system);
 		system.contextStack.push(this);
 		var res = coro(this);
+		if(res == null) res = Stop;
 		system.contextStack.pop();
 		lastResult = res;
 		isWaiting = false;
@@ -145,10 +156,10 @@ class CoroutineContext<T = Dynamic> {
 	private function once(callback:MaybeReturn<T>):T {
 		var idx = onceIndex;
 		onceIndex++;
-
 		if (idx < onceResults.length) {
 			return cast onceResults[idx];
 		}
+		
 
 		var res:T = (callback : Void->T)();
 		onceCallbacks.push(callback);

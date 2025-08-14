@@ -9,7 +9,6 @@ import heaps.coroutine.Coroutine.FrameYield;
 
 
 import haxe.macro.Expr;
-//import haxe.macro.ExprOf;
 
 
 @:access(heaps.coroutine.CoroutineSystem)
