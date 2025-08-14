@@ -67,6 +67,7 @@ abstract Coroutine<T = Dynamic>(CoroutineContext<T>) {
 		return this;
 }
 
+@:using(heaps.coroutine.macros.CoroutineMacroExtensions)
 @:access(heaps.coroutine.CoroutineSystem)
 class CoroutineContext<T = Dynamic> {
 	public var uuid(default, null):String;
@@ -89,6 +90,7 @@ class CoroutineContext<T = Dynamic> {
 	var priority(default, null):CoroutinePriority = Processing;
 	var lastResult:FrameYield = null;
 	var system:CoroutineSystem = CoroutineSystem.MAIN;
+
 	var data: Map<String, Dynamic>;
 
 	var onceCallbacks:Array<Void->Dynamic> = [];

@@ -2,6 +2,7 @@ package heaps.coroutine.macros;
 
 import haxe.macro.Expr;
 import haxe.macro.Context;
+import heaps.coroutine.Coroutine.CoroutineContext;
 
 class CoroutineMacroExtensions {
 	public static macro function await<T>(callingExpr:ExprOf<Coroutine<T>>):Expr {
@@ -33,5 +34,29 @@ class CoroutineMacroExtensions {
 				__awaitResult;
 			};
 		}
+	}
+
+	public static macro function store<T>(ctxExpr:ExprOf<CoroutineContext<T>>, variable:Expr):Expr {
+		var name = switch (variable.expr) {
+			case EConst(CIdent(n)): n;
+			default: Context.error("ctx.store expects an identifier", variable.pos);
+		};
+		return macro $ctxExpr.setData($v{"__" + name}, $variable);
+	}
+
+	public static macro function unstore<T>(ctxExpr:ExprOf<CoroutineContext<T>>, variable:Expr):Expr {
+		var name = switch (variable.expr) {
+			case EConst(CIdent(n)): n;
+			default: Context.error("ctx.unstore expects an identifier", variable.pos);
+		};
+		var pos = variable.pos;
+		var getExpr:Expr = macro $ctxExpr.getData($v{"__" + name});
+		var declareExpr:Expr = {
+			expr: EVars([
+				{name: name, type: null, expr: getExpr}
+			]),
+			pos: pos
+		};
+		return { expr: EBlock([declareExpr]), pos: pos };
 	}
 }
