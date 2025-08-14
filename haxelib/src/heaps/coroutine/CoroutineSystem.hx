@@ -90,6 +90,7 @@ class CoroutineSystem {
 	}
 
 	public function add<T>(ctx:CoroutineContext<T>):Void {
+		if(ctx == null) return;
 		ctx.system = this;
 		init();
 		routines[ctx.uuid] = ctx;

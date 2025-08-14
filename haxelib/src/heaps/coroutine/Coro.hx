@@ -9,7 +9,7 @@ import heaps.coroutine.Coroutine.FrameYield;
 
 
 import haxe.macro.Expr;
-//import haxe.macro.ExprOf;
+import haxe.macro.Context;
 
 
 @:access(heaps.coroutine.CoroutineSystem)
@@ -45,5 +45,68 @@ class Coro {
             }
         }
     }
+
+    public static macro function step(block:Expr):Expr {
+        switch (block.expr) {
+            case EBlock(_):
+                return macro heaps.coroutine.Coro.start((_) -> $block);
+            case _:
+                Context.error("Coro.step expects a block expression: Coro.step({ ... })", block.pos);
+        }
+        return macro null;
+    }
+
+	    public static macro function tween(object:Expr, duration:Expr, fields:Expr):Expr {
+	    	var pos = Context.currentPos();
+	    	switch (fields.expr) {
+	    		case EObjectDecl(objFields):
+	    			// Build data object with startTime, and per-field start and delta
+	    			var dataObjectFields:Array<{ field:String, expr:Expr, quotes:Null<haxe.macro.Expr.QuoteStatus> }> = [];
+	    			dataObjectFields.push({ field: "startTime", expr: macro haxe.Timer.stamp(), quotes: null });
+	    			var assignRunning:Array<Expr> = [];
+	    			var assignFinal:Array<Expr> = [];
+	    			for (f in objFields) {
+	    				var fieldName = f.field;
+	    				var objField:Expr = { expr: EField(macro __obj, fieldName), pos: pos };
+	    				var startFieldName = "start_" + fieldName;
+	    				var deltaFieldName = "delta_" + fieldName;
+	    				// start value
+	    				dataObjectFields.push({ field: startFieldName, expr: objField, quotes: null });
+	    				// delta = target - start
+	    				dataObjectFields.push({ field: deltaFieldName, expr: macro ${f.expr} - ${objField}, quotes: null });
+	    				// assignments each frame and on completion
+	    				var twExpr:Expr = macro __tw;
+	    				var startFieldExpr:Expr = { expr: EField(twExpr, startFieldName), pos: pos };
+	    				var deltaFieldExpr:Expr = { expr: EField(twExpr, deltaFieldName), pos: pos };
+	    				assignRunning.push(macro ${objField} = ${startFieldExpr} + ${deltaFieldExpr} * __t);
+	    				assignFinal.push(macro ${objField} = ${startFieldExpr} + ${deltaFieldExpr});
+	    			}
+
+	    			var dataObj:Expr = { expr: EObjectDecl(dataObjectFields), pos: pos };
+
+	    			return macro heaps.coroutine.Coro.start((ctx) -> {
+	    				var __obj = heaps.coroutine.Coro.once(() -> return $object);
+	    				var __duration:Float = heaps.coroutine.Coro.once(() -> return $duration);
+	    				var __tw = heaps.coroutine.Coro.once(() -> return $dataObj);
+
+	    				if (__duration <= 0) {
+	    					${{ expr: EBlock(assignFinal), pos: pos }}
+	    					return heaps.coroutine.FrameYield.Stop;
+	    				}
+
+	    				var __t:Float = (haxe.Timer.stamp() - __tw.startTime) / __duration;
+	    				if (__t >= 1) {
+	    					${{ expr: EBlock(assignFinal), pos: pos }}
+	    					return heaps.coroutine.FrameYield.Stop;
+	    				}
+
+	    				${{ expr: EBlock(assignRunning), pos: pos }}
+	    				return heaps.coroutine.FrameYield.WaitNextFrame;
+	    			});
+	    		case _:
+	    			Context.error("Coro.tween expects an object literal for fields, e.g., {x: 10, y: 20}", pos);
+	    	}
+	    	return macro null;
+	    }
 
 }

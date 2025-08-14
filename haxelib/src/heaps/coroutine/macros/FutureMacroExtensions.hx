@@ -16,9 +16,9 @@ class FutureMacroExtensions {
 
 		if (!valueNeeded) {
 			return macro {
-				var __future = heaps.coroutine.Coro.once(() -> return $callingExpr);
+				var __future = heaps.coroutine.Coro.once(() -> {return $callingExpr;});
 				if (!__future.isComplete)
-					return heaps.coroutine.FrameYield.Suspend(__future);
+					return heaps.coroutine.Coroutine.FrameYield.Suspend(__future);
 			};
 		} else {
 			return macro {
@@ -27,7 +27,7 @@ class FutureMacroExtensions {
 				var __awaitResult:Dynamic = null;
 
 				if (!__future.isComplete) {
-					return heaps.coroutine.FrameYield.Suspend(__future);
+					return heaps.coroutine.Coroutine.FrameYield.Suspend(__future);
 				} else {
 					@:privateAccess __awaitResult = __future._result;
 				}
