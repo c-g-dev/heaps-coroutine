@@ -46,6 +46,10 @@ class Coro {
         }
     }
 
+    public static function haltTree(coroutine: Coroutine):Void {
+        CoroutineSystem.MAIN.haltTree(coroutine.context());
+    }
+
     public static macro function step(block:Expr):Expr {
         switch (block.expr) {
             case EBlock(_):
@@ -60,7 +64,6 @@ class Coro {
 	    	var pos = Context.currentPos();
 	    	switch (fields.expr) {
 	    		case EObjectDecl(objFields):
-	    			// Build data object with startTime, and per-field start and delta
 	    			var dataObjectFields:Array<{ field:String, expr:Expr, quotes:Null<haxe.macro.Expr.QuoteStatus> }> = [];
 	    			dataObjectFields.push({ field: "startTime", expr: macro haxe.Timer.stamp(), quotes: null });
 	    			var assignRunning:Array<Expr> = [];
@@ -70,11 +73,8 @@ class Coro {
 	    				var objField:Expr = { expr: EField(macro __obj, fieldName), pos: pos };
 	    				var startFieldName = "start_" + fieldName;
 	    				var deltaFieldName = "delta_" + fieldName;
-	    				// start value
 	    				dataObjectFields.push({ field: startFieldName, expr: objField, quotes: null });
-	    				// delta = target - start
 	    				dataObjectFields.push({ field: deltaFieldName, expr: macro ${f.expr} - ${objField}, quotes: null });
-	    				// assignments each frame and on completion
 	    				var twExpr:Expr = macro __tw;
 	    				var startFieldExpr:Expr = { expr: EField(twExpr, startFieldName), pos: pos };
 	    				var deltaFieldExpr:Expr = { expr: EField(twExpr, deltaFieldName), pos: pos };

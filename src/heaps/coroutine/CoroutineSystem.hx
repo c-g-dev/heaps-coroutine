@@ -95,6 +95,7 @@ class CoroutineSystem {
 		init();
 		routines[ctx.uuid] = ctx;
 		routinesByPriority[ctx.priority].push(ctx);
+		ctx.onAttached();
 	}
 
 	public function remove(ctx:CoroutineContext):Void {
@@ -102,6 +103,19 @@ class CoroutineSystem {
 			return;
 		routines.remove(ctx.uuid);
 		routinesByPriority[ctx.priority].remove(ctx);
+	}
+
+	public function haltTree(ctx:CoroutineContext, ?visited: Array<CoroutineContext>):Void {
+		if (ctx == null)
+			return;
+		if (visited == null) visited = [];
+		ctx.halt();
+		visited.push(ctx);
+		for (each in routines) {
+			if (each.parent == ctx && !visited.contains(each)) {
+				haltTree(each);
+			}
+		}
 	}
 
 	private inline function shouldFireThisFrame(ctx:CoroutineContext, dt:Float):Bool {

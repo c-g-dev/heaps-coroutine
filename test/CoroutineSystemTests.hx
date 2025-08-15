@@ -34,6 +34,9 @@ class CoroutineSystemTests {
 			testFutureAwait();
 			testYield();
 			testCoroYield();
+			testTweenImmediateZeroDuration();
+			testTweenCompletesAfterDuration();
+			testTweenProgressOverTime();
 			report(true);
 		} catch (e) {
 			trace("TEST FAILED: " + e.message + "\n" + e.stack.toString());
@@ -385,7 +388,67 @@ class CoroutineSystemTests {
 		trace("testCoroYield      ✓");
 	}
 
+	// Tween tests
+	function testTweenImmediateZeroDuration() {
+		trace("testTweenImmediateZeroDuration");
+		var obj = makeH2dObject();
+		assert(obj.x == 0 && obj.y == 0, "initial obj not at (0,0)");
+		Coro.tween(obj, 0.0, { x: 100.0, y: 100.0 });
+		runFrame(1 / 60);
+		assert(almostEqual(obj.x, 100.0) && almostEqual(obj.y, 100.0), 'obj not immediately set to (100,100): (${obj.x}, ${obj.y})');
+		trace("testTweenImmediateZeroDuration ✓");
+	}
+
+	function testTweenCompletesAfterDuration() {
+		trace("testTweenCompletesAfterDuration");
+		var obj = makeH2dObject();
+		var duration = 0.2; // seconds
+		Coro.tween(obj, duration, { x: 100.0, y: 200.0 });
+		runFrame(1 / 60);
+		assert(obj.x >= 0 && obj.x <= 100 && obj.y >= 0 && obj.y <= 200, "values out of expected range after start");
+		Sys.sleep(duration + 0.05);
+		runFrame(1 / 60);
+		assert(almostEqual(obj.x, 100.0) && almostEqual(obj.y, 200.0), 'final values incorrect: (${obj.x}, ${obj.y})');
+		trace("testTweenCompletesAfterDuration ✓");
+	}
+
+	function testTweenProgressOverTime() {
+		trace("testTweenProgressOverTime");
+		var obj = makeH2dObject();
+		var duration = 0.3; // seconds
+		Coro.tween(obj, duration, { x: 100.0, y: 100.0 });
+		runFrame(1 / 60);
+		Sys.sleep(duration / 4 + 0.02);
+		runFrame(1 / 60);
+		var v1 = obj.x;
+		Sys.sleep(duration / 4 + 0.02);
+		runFrame(1 / 60);
+		var v2 = obj.x;
+		assert(v2 > v1 && v2 < 100.0, 'progress not monotonic: v1=${v1}, v2=${v2}');
+		Sys.sleep(duration / 2 + 0.05);
+		runFrame(1 / 60);
+		assert(almostEqual(obj.x, 100.0) && almostEqual(obj.y, 100.0), 'final values incorrect: (${obj.x}, ${obj.y})');
+		trace("testTweenProgressOverTime ✓");
+	}
+
+	inline function makeH2dObject():TweenDummy {
+		return new TweenDummy();
+	}
+
+	inline function almostEqual(a:Float, b:Float, eps:Float = 1e-3):Bool {
+		return Math.abs(a - b) <= eps;
+	}
+
 	private function report(allOk:Bool) {
 		trace(allOk ? "====================================\nALL COROUTINE TESTS PASSED\n====================================" : "Some tests failed – see log above.");
+	}
+}
+
+class TweenDummy {
+	public var x:Float;
+	public var y:Float;
+	public function new() {
+		this.x = 0;
+		this.y = 0;
 	}
 }

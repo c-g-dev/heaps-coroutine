@@ -1,5 +1,6 @@
 package heaps.coroutine;
 
+import ludi.commons.collections.Set;
 import heaps.coroutine.ext.CoroutineExtensions;
 import haxe.extern.EitherType;
 import haxe.ds.Either;
@@ -90,6 +91,8 @@ class CoroutineContext<T = Dynamic> {
 	var priority(default, null):CoroutinePriority = Processing;
 	var lastResult:FrameYield = null;
 	var system:CoroutineSystem = CoroutineSystem.MAIN;
+	var parent:CoroutineContext = null;
+	var _tags: ludi.commons.collections.Set<String> = null;
 
 	var data: Map<String, Dynamic>;
 
@@ -116,6 +119,32 @@ class CoroutineContext<T = Dynamic> {
 		this.uuid = ludi.commons.UUID.generate();
 		this.future = new Future();
 	}
+
+	private function onAttached(): Void {
+		if(system.contextStack != null) {
+			this.parent = system.contextStack.peek();
+		}
+	}
+
+	public function tag(tag: String): Void {
+		if(_tags == null) _tags = new Set();
+		_tags.push(tag);
+	}
+
+	public function hasTag(tag: String): Bool {
+		if(_tags == null) return false;
+		return _tags.exists(tag);
+	}
+
+	public function disassociate(): Void {
+		this.parent = null;
+	}
+
+	public function halt(): Void {
+		this.manuallyPaused = true;
+	}
+
+	
 
 	private function invoke():FrameYield<T> {
 		onceIndex = 0;
